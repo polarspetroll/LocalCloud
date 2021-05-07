@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Dashboard</title>
+  </head>
+  <body style="background-color:black;">
+      <a href="/changepassword"><p style="color:#ff00e6;">Change Password</p></a>
+      <a href="/uploads"><p style="color:#ff00e6;">Files</p></a>
+    <form enctype="multipart/form-data" method="POST">
+      <div align="center">
+      <fieldset>
+        <br/>
+        <br/>
+        <br/>
+        <br/>
+        <br/>
+        <legend style="color:cyan;">Upload</legend>
+      <input type="file" style="color:cyan;border-radius: 8px;" name="file" required/>
+      <br/>
+      <br/>
+      <button style="background-color:yellow;border-radius: 10px;">Upload</button>
+      <br/>
+      <br/>
+      <br/>
+      <br/>
+      <br/>
+      <br/>
+    </fieldset>
+  </div>
+    </form>
+    {{ if . }}
+    <center><p style="color:pink;">{{ . }}</p></center>
+    {{ end }}
+  </body>
+</html>
