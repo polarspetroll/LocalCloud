@@ -16,7 +16,7 @@ func main() {
 	statics := http.FileServer(http.Dir("./statics"))
 	//////////////////////////////////////////////////////////////////////
 	http.Handle("/statics/", http.StripPrefix("/statics/", statics))
-	http.HandleFunc("/", Redirect)
+	http.Handle("/", http.RedirectHandler("/dashboard", 302))
 	http.HandleFunc("/login", login.Login)
 	http.HandleFunc("/dashboard", upload.Dashboard)
 	http.HandleFunc("/changepassword", login.ChangePassword)
@@ -26,8 +26,4 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-}
-
-func Redirect(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, "/dashboard", 302)
 }
