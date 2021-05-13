@@ -1,8 +1,6 @@
 package upload
 
 import (
-	"database/sql"
-	_ "github.com/go-sql-driver/mysql"
 	"html/template"
 	"io/ioutil"
 	"log"
@@ -10,17 +8,19 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+  "github.com/go-redis/redis"
+	"os"
 )
 
 /////////////////*FILL THIS*//////////////////
-const rootdir = ""       //root directory////
+const rootdir = "/"       //root directory////
 /////////////////////////////////////////////
 
 var DBc string
+var rediscnt redis.Options = redis.Options{Addr: os.Getenv("REDISADDR")+":6379", Password: os.Getenv("REDISPWD"), DB: 0}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 func Dashboard(w http.ResponseWriter, r *http.Request) {
-	DB, err := sql.Open("mysql", DBc)
 	temp, err := template.ParseFiles("templates/index.html")
 	CheckErr(err)
 	cookie, err := r.Cookie("ESSID")
@@ -28,7 +28,7 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/login", 302)
 		return
 	}
-	if QueryCookie(cookie.Value, DB) == false {
+	if QueryCookie(cookie.Value) == false {
 		http.Redirect(w, r, "/login", 302)
 		return
 	}
@@ -60,14 +60,12 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 }
 
 func Uploads(w http.ResponseWriter, r *http.Request) {
-	DB, err := sql.Open("mysql", DBc)
-	CheckErr(err)
 	cookie, err := r.Cookie("ESSID")
 	if err != nil || len(cookie.Value) > 20 {
 		http.Redirect(w, r, "/login", 302)
 		return
 	}
-	if QueryCookie(cookie.Value, DB) == false {
+	if QueryCookie(cookie.Value) == false {
 		http.Redirect(w, r, "/login", 302)
 		return
 	}
@@ -84,11 +82,13 @@ func Uploads(w http.ResponseWriter, r *http.Request) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
-func QueryCookie(cookie string, DB *sql.DB) (stat bool) {
-	stat = false
-	q, err := DB.Query(`SELECT * FROM cloud WHERE session=?`, cookie)
+func QueryCookie(cookie string) (stat bool){
+	rdb := redis.NewClient(&rediscnt)
+	_, err := rdb.Get(cookie).Result()
 	CheckErr(err)
-	if q.Next() == true {
+	if err == redis.Nil {
+		stat = false
+	}else {
 		stat = true
 	}
 	return stat

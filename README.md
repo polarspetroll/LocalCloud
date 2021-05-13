@@ -5,11 +5,17 @@ simple NAS web app for personal usage with authentication and authorization
 ### Environment Variables
 
 ```
-DBPWD   -> Database Password
-DBUSR   -> Database Username
-DBADDR  -> Database Address
-DBNAME  -> Database Name
-PORT    -> Listen Port
+############Mysql#################
+DBPWD     -> Database Password    
+DBUSR     -> Database Username    
+DBADDR    -> Database Address     
+DBNAME    -> Database Name        
+############Redis#################
+REDISPWD  -> redis password       
+REDISADDR -> redis address        
+############General###############
+PORT      -> Listen Port          
+##################################
 ```
 
 ### Constant Variable
@@ -20,7 +26,8 @@ PORT    -> Listen Port
 
 #### Database
 
-- type : Mysql
+- Credentials : **Mysql**
+- Session : **Redis**
 
 **tables** :
 
@@ -28,8 +35,7 @@ PORT    -> Listen Port
 CREATE TABLE cloud (
   id INT AUTO_INCREMENT PRIMARY KEY,
   username VARCHAR(40) UNIQUE NOT NULL,
-  password VARCHAR(32) NOT NULL,
-  session VARCHAR(20) UNIQUE DEFAULT NULL
+  password VARCHAR(32) NOT NULL
 );
 
 INSERT INTO cloud(username, password) VALUES('your username', MD5('your password'));

@@ -4,13 +4,17 @@ import (
 	"crypto/rand"
 	"database/sql"
 	"encoding/hex"
+	"github.com/go-redis/redis"
 	_ "github.com/go-sql-driver/mysql"
 	"html/template"
 	"log"
 	"net/http"
+	"time"
+	"os"
 )
 
 var DBc string
+var rediscnt redis.Options = redis.Options{Addr: os.Getenv("REDISADDR")+":6379", Password: os.Getenv("REDISPWD"), DB: 0}
 
 func Login(w http.ResponseWriter, r *http.Request) {
 	tmp, err := template.ParseFiles("templates/login.html")
@@ -35,7 +39,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 			tmp.Execute(w, "Server Error")
 			return
 		}
-		ck := http.Cookie{Name: "ESSID", Value: sid}
+		ck := http.Cookie{Name: "ESSID", Value: sid, Expires: time.Now().Add(5 * time.Hour)}
 		http.SetCookie(w, &ck)
 		http.Redirect(w, r, "/", 302)
 	} else {
@@ -54,7 +58,7 @@ func ChangePassword(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/login", 302)
 		return
 	}
-	if QueryCookie(cookie.Value, DB) == false {
+	if QueryCookie(cookie.Value) == false {
 		http.Redirect(w, r, "/login", 302)
 		return
 	}
@@ -85,7 +89,7 @@ func ChangePassword(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-////////////////
+////////////////Database//////////////////////////////////////////
 func Query(username, password string, DB *sql.DB) (stat bool, sid string) {
 	stat = true
 	q, err := DB.Query(`SELECT username, password FROM cloud WHERE username=? AND password=MD5(?)`, username, password)
@@ -94,7 +98,7 @@ func Query(username, password string, DB *sql.DB) (stat bool, sid string) {
 		a := make([]byte, 10)
 		rand.Read(a)
 		sid = hex.EncodeToString(a)
-		if Update(sid, username, DB) != 1 {
+		if SetCookie(username, sid) != true {
 			stat = false
 		}
 	} else if q.Next() == false {
@@ -105,26 +109,6 @@ func Query(username, password string, DB *sql.DB) (stat bool, sid string) {
 }
 
 ////////////////
-func Update(sid, username string, DB *sql.DB) int64 {
-	p, err := DB.Prepare(`UPDATE cloud SET session=? WHERE username=?`)
-	CheckErr(err)
-	res, err := p.Exec(sid, username)
-	CheckErr(err)
-	row, err := res.RowsAffected()
-	CheckErr(err)
-	return row
-}
-
-func QueryCookie(cookie string, DB *sql.DB) (stat bool) {
-	stat = false
-	q, err := DB.Query(`SELECT session FROM cloud WHERE session=?`, cookie)
-	CheckErr(err)
-	if q.Next() == true {
-		stat = true
-	}
-	return stat
-}
-
 func PasswordUpdate(username, password string, DB *sql.DB) int64 {
 	q, err := DB.Prepare(`UPDATE cloud SET password=MD5(?) WHERE username=? `)
 	CheckErr(err)
@@ -134,9 +118,32 @@ func PasswordUpdate(username, password string, DB *sql.DB) int64 {
 	CheckErr(err)
 	return row
 }
+//////////////////Sessions//////////////////////////
+func QueryCookie(cookie string) (stat bool){
+	rdb := redis.NewClient(&rediscnt)
+	_, err := rdb.Get(cookie).Result()
+	CheckErr(err)
+	if err == redis.Nil {
+		stat = false
+	}else {
+		stat = true
+	}
+	return stat
+}
 
-////////////////
-
+func SetCookie(username, sid string) (stat bool){
+	rdb := redis.NewClient(&rediscnt)
+	exp, _ := time.ParseDuration("5h")
+  err := rdb.Set(sid, username, exp).Err()
+	if err != nil {
+		stat = false
+		panic(err.Error())
+	}else {
+		stat = true
+	}
+	return stat
+}
+////////////////Error Handler/////////////////////
 func CheckErr(err error) {
 	if err != nil {
 		log.Fatal(err)
