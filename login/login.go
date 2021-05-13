@@ -9,12 +9,12 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"time"
 	"os"
+	"time"
 )
 
 var DBc string
-var rediscnt redis.Options = redis.Options{Addr: os.Getenv("REDISADDR")+":6379", Password: os.Getenv("REDISPWD"), DB: 0}
+var rediscnt redis.Options = redis.Options{Addr: os.Getenv("REDISADDR") + ":6379", Password: os.Getenv("REDISPWD"), DB: 0}
 
 func Login(w http.ResponseWriter, r *http.Request) {
 	tmp, err := template.ParseFiles("templates/login.html")
@@ -118,31 +118,33 @@ func PasswordUpdate(username, password string, DB *sql.DB) int64 {
 	CheckErr(err)
 	return row
 }
+
 //////////////////Sessions//////////////////////////
-func QueryCookie(cookie string) (stat bool){
+func QueryCookie(cookie string) (stat bool) {
 	rdb := redis.NewClient(&rediscnt)
 	_, err := rdb.Get(cookie).Result()
 	CheckErr(err)
 	if err == redis.Nil {
 		stat = false
-	}else {
+	} else {
 		stat = true
 	}
 	return stat
 }
 
-func SetCookie(username, sid string) (stat bool){
+func SetCookie(username, sid string) (stat bool) {
 	rdb := redis.NewClient(&rediscnt)
 	exp, _ := time.ParseDuration("5h")
-  err := rdb.Set(sid, username, exp).Err()
+	err := rdb.Set(sid, username, exp).Err()
 	if err != nil {
 		stat = false
 		panic(err.Error())
-	}else {
+	} else {
 		stat = true
 	}
 	return stat
 }
+
 ////////////////Error Handler/////////////////////
 func CheckErr(err error) {
 	if err != nil {

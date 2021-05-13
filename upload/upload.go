@@ -1,23 +1,23 @@
 package upload
 
 import (
+	"github.com/go-redis/redis"
 	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"path"
 	"path/filepath"
 	"strings"
-  "github.com/go-redis/redis"
-	"os"
 )
 
 /////////////////*FILL THIS*//////////////////
-const rootdir = "/"       //root directory////
+const rootdir = "/" //root directory////
 /////////////////////////////////////////////
 
 var DBc string
-var rediscnt redis.Options = redis.Options{Addr: os.Getenv("REDISADDR")+":6379", Password: os.Getenv("REDISPWD"), DB: 0}
+var rediscnt redis.Options = redis.Options{Addr: os.Getenv("REDISADDR") + ":6379", Password: os.Getenv("REDISPWD"), DB: 0}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 func Dashboard(w http.ResponseWriter, r *http.Request) {
@@ -82,13 +82,13 @@ func Uploads(w http.ResponseWriter, r *http.Request) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
-func QueryCookie(cookie string) (stat bool){
+func QueryCookie(cookie string) (stat bool) {
 	rdb := redis.NewClient(&rediscnt)
 	_, err := rdb.Get(cookie).Result()
 	CheckErr(err)
 	if err == redis.Nil {
 		stat = false
-	}else {
+	} else {
 		stat = true
 	}
 	return stat
