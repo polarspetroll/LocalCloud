@@ -85,7 +85,6 @@ func Uploads(w http.ResponseWriter, r *http.Request) {
 func QueryCookie(cookie string) (stat bool) {
 	rdb := redis.NewClient(&rediscnt)
 	_, err := rdb.Get(cookie).Result()
-	CheckErr(err)
 	if err == redis.Nil {
 		stat = false
 	} else {
