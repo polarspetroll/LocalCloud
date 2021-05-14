@@ -8,6 +8,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"html/template"
 	"log"
+	"logger"
 	"net/http"
 	"os"
 	"time"
@@ -17,6 +18,7 @@ var DBc string
 var rediscnt redis.Options = redis.Options{Addr: os.Getenv("REDISADDR") + ":6379", Password: os.Getenv("REDISPWD"), DB: 0}
 
 func Login(w http.ResponseWriter, r *http.Request) {
+	logger.LogInsert(r.Method, r.UserAgent(), r.URL.Path, r)
 	tmp, err := template.ParseFiles("templates/login.html")
 	CheckErr(err)
 	DB, err := sql.Open("mysql", DBc)
@@ -49,6 +51,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func ChangePassword(w http.ResponseWriter, r *http.Request) {
+	logger.LogInsert(r.Method, r.UserAgent(), r.URL.Path, r)
 	tmp, err := template.ParseFiles("templates/passwordchange.html")
 	CheckErr(err)
 	DB, err := sql.Open("mysql", DBc)
