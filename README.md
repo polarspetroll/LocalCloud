@@ -1,6 +1,6 @@
 # Local NAS
 
-simple NAS web app for personal usage with authentication and authorization
+Simple NAS web app for personal usage with authentication and authorization
 
 ### Environment Variables
 
@@ -20,7 +20,7 @@ PORT      -> Listen Port
 
 ### Constant Variable
 
-- ```rootdir``` -> Root Directory for Uploaded Files
+- ```rootdir``` -> Root directory for uploaded files
  - /upload/upload.go at line 16
 
 
